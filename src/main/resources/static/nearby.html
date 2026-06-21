@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotBite — Restaurants Near Me</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+.nearby-layout{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  height:calc(100vh - 73px);
+}
+
+#map{
+  width:100%;
+  height:100%;
+  background:#e8f0fe;
+}
+
+.nearby-panel{
+  overflow-y:auto;
+  background:#F8F9FA;
+  padding:20px;
+  border-right:1px solid #E9ECEF;
+}
+
+.nearby-panel::-webkit-scrollbar{width:4px}
+.nearby-panel::-webkit-scrollbar-track{background:#f1f1f1}
+.nearby-panel::-webkit-scrollbar-thumb{background:#FF6B35;border-radius:4px}
+
+.location-bar{
+  background:white;
+  border-radius:14px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  margin-bottom:14px;
+  border:1px solid #E9ECEF;
+}
+
+.location-dot{
+  width:14px;height:14px;
+  background:#4285F4;
+  border-radius:50%;
+  flex-shrink:0;
+  box-shadow:0 0 0 4px rgba(66,133,244,.15);
+  transition:background .3s;
+}
+
+.radius-bar{
+  background:white;
+  border-radius:14px;
+  padding:16px 18px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  margin-bottom:14px;
+  border:1px solid #E9ECEF;
+}
+
+.radius-bar label{
+  font-size:13px;
+  font-weight:600;
+  color:#6C757D;
+  display:block;
+  margin-bottom:10px;
+}
+
+.radius-bar input[type=range]{
+  width:100%;
+  -webkit-appearance:none;
+  height:6px;
+  border-radius:3px;
+  background:linear-gradient(to right,#FF6B35 0%,#FF6B35 50%,#E9ECEF 50%,#E9ECEF 100%);
+  outline:none;
+  cursor:pointer;
+}
+
+.radius-bar input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:20px;
+  background:#FF6B35;
+  border-radius:50%;
+  border:3px solid white;
+  box-shadow:0 2px 8px rgba(255,107,53,.4);
+  cursor:pointer;
+}
+
+.detecting-box{
+  text-align:center;
+  padding:40px 20px;
+  background:white;
+  border-radius:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  border:1px solid #E9ECEF;
+}
+
+@keyframes pulse-ring{
+  0%{transform:scale(.8);opacity:1}
+  100%{transform:scale(1.6);opacity:0}
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes shimmer{
+  0%{background-position:-468px 0}
+  100%{background-position:468px 0}
+}
+
+.pulse-ring{
+  width:56px;height:56px;
+  border:3px solid #FF6B35;
+  border-radius:50%;
+  margin:0 auto 16px;
+  animation:pulse-ring 1.5s ease-out infinite;
+}
+
+.nearby-card{
+  background:white;
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  gap:14px;
+  margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  cursor:pointer;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  border:1.5px solid transparent;
+  animation:fadeUp .4s ease both;
+}
+
+.nearby-card:hover{
+  transform:translateX(6px);
+  border-color:#FF6B35;
+  box-shadow:0 6px 20px rgba(255,107,53,.15);
+}
+
+.nearby-card img{
+  width:76px;height:76px;
+  border-radius:12px;
+  object-fit:cover;
+  flex-shrink:0;
+}
+
+.nearby-card h3{
+  font-size:15px;
+  font-weight:700;
+  margin-bottom:4px;
+  color:#2D3142;
+}
+
+.distance-badge{
+  background:#fff3ef;
+  color:#FF6B35;
+  font-size:12px;
+  font-weight:700;
+  padding:3px 10px;
+  border-radius:50px;
+  display:inline-block;
+  margin-bottom:5px;
+}
+
+.rating-badge{
+  background:#4CAF50;
+  color:white;
+  padding:2px 8px;
+  border-radius:6px;
+  font-weight:700;
+  font-size:12px;
+}
+
+.crowd-pill{
+  padding:2px 10px;
+  border-radius:50px;
+  font-size:11px;
+  font-weight:600;
+}
+
+.crowd-low{background:#e8f5e9;color:#2e7d32}
+.crowd-moderate{background:#fff8e1;color:#f57f17}
+.crowd-high{background:#fce4ec;color:#c62828}
+.crowd-full{background:#ffebee;color:#b71c1c}
+
+.skeleton{
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:10px;
+}
+
+.results-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+  padding:0 2px;
+}
+
+.sort-select{
+  padding:6px 12px;
+  border:1.5px solid #E9ECEF;
+  border-radius:8px;
+  font-size:13px;
+  font-family:'Inter',sans-serif;
+  outline:none;
+  cursor:pointer;
+  color:#2D3142;
+}
+
+.sort-select:focus{border-color:#FF6B35}
+
+.map-placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  background:#f0f4ff;
+  color:#6C757D;
+  gap:12px;
+}
+
+.refresh-btn{
+  background:#FF6B35;
+  color:white;
+  border:none;
+  padding:8px 16px;
+  border-radius:50px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  transition:all .2s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.refresh-btn:hover{
+  background:#e55a28;
+  transform:translateY(-1px);
+}
+
+.toast{
+  position:fixed;
+  bottom:28px;right:28px;
+  z-index:9999;
+  background:#2D3142;
+  color:white;
+  padding:12px 20px;
+  border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+  font-size:14px;font-weight:500;
+  display:none;
+  font-family:'Inter',sans-serif;
+}
+.toast.show{display:block;animation:fadeUp .3s ease}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+
+@media(max-width:768px){
+  .nearby-layout{grid-template-columns:1fr;grid-template-rows:50vh 1fr}
+  #map{height:100%}
+}
+</style>
+</head>
+<body style="font-family:'Inter',sans-serif">
+
+<!-- NAVBAR -->
+<nav style="background:rgba(255,255,255,.95);backdrop-filter:blur(12px);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 0 #E9ECEF;position:sticky;top:0;z-index:100">
+  <a href="/index.html" style="font-size:22px;font-weight:800;color:#FF6B35;text-decoration:none">
+    Spot<span style="color:#2D3142">Bite</span> 🍽️
+  </a>
+  <div style="display:flex;gap:24px;list-style:none">
+    <a href="/index.html" style="color:#6C757D;font-weight:500;font-size:15px;text-decoration:none">Home</a>
+    <a href="/search.html" style="color:#6C757D;font-weight:500;font-size:15px;text-decoration:none">Search</a>
+    <a href="/nearby.html" style="color:#FF6B35;font-weight:600;font-size:15px;text-decoration:none">📍 Near Me</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px" id="nav-auth"></div>
+</nav>
+
+<!-- MAIN LAYOUT -->
+<div class="nearby-layout">
+
+  <!-- LEFT PANEL -->
+  <div class="nearby-panel">
+
+    <!-- Location Status -->
+    <div class="location-bar">
+      <div class="location-dot" id="loc-dot"></div>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:700;font-size:14px;margin-bottom:2px;color:#2D3142" id="loc-status">
+          Detecting your location...
+        </p>
+        <p style="font-size:12px;color:#6C757D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="loc-coords">
+          Please allow location access
+        </p>
+      </div>
+      <button class="refresh-btn" onclick="detectLocation()">📍 Refresh</button>
+    </div>
+
+    <!-- Radius Slider -->
+    <div class="radius-bar">
+      <label>
+        Search radius:
+        <strong style="color:#FF6B35" id="radius-label">5 km</strong>
+      </label>
+      <input type="range" min="1" max="20" value="5" step="1"
+             id="radius-slider"
+             oninput="updateRadius(this.value)"/>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:4px">
+        <span>1 km</span>
+        <span>10 km</span>
+        <span>20 km</span>
+      </div>
+    </div>
+
+    <!-- Detecting Animation -->
+    <div id="detecting-box" class="detecting-box">
+      <div class="pulse-ring"></div>
+      <h3 style="font-weight:700;margin-bottom:8px;color:#2D3142">Finding restaurants near you</h3>
+      <p style="color:#6C757D;font-size:14px;line-height:1.6">
+        Please allow location access when your browser prompts you
+      </p>
+    </div>
+
+    <!-- Results Header (hidden until results load) -->
+    <div class="results-header" id="results-header" style="display:none">
+      <p style="font-size:14px;color:#6C757D;font-weight:600">
+        <strong id="count" style="color:#2D3142">0</strong> restaurants found
+      </p>
+      <select class="sort-select" onchange="sortResults(this.value)">
+        <option value="distance">Nearest first</option>
+        <option value="rating">Top rated</option>
+        <option value="name">Name A-Z</option>
+      </select>
+    </div>
+
+    <!-- Restaurant List -->
+    <div id="nearby-list"></div>
+
+  </div>
+
+  <!-- RIGHT SIDE: MAP -->
+  <div id="map">
+    <div class="map-placeholder" id="map-placeholder">
+      <div style="font-size:48px">🗺️</div>
+      <p style="font-size:16px;font-weight:600;color:#2D3142">Map loads after location access</p>
+      <p style="font-size:14px;color:#aaa">Allow location permission to see the map</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/location.js"></script>
+<script>
+let currentRadius = 5;
+let allResults = [];
+let googleMapReady = false;
+
+// Wait for Google Maps to load
+window.initGoogleMaps = function() {
+    googleMapReady = true;
+    console.log('Google Maps ready!');
+};
+
+window.onload = function() {
+    updateNavbar();
+    updateSliderStyle(5);
+    detectLocation();
+};
+
+function detectLocation() {
+    document.getElementById('detecting-box').style.display = 'block';
+    document.getElementById('detecting-box').innerHTML = `
+        <div class="pulse-ring"></div>
+        <h3 style="font-weight:700;margin-bottom:8px;color:#2D3142">Finding restaurants near you</h3>
+        <p style="color:#6C757D;font-size:14px;line-height:1.6">
+            Please allow location access when your browser prompts you
+        </p>`;
+    document.getElementById('nearby-list').innerHTML = '';
+    document.getElementById('results-header').style.display = 'none';
+
+    LocationService.getUserLocation(
+        async (lat, lng) => {
+            document.getElementById('loc-dot').style.background = '#4CAF50';
+            document.getElementById('loc-dot').style.boxShadow = '0 0 0 4px rgba(76,175,80,.2)';
+            document.getElementById('loc-status').textContent = '✅ Location found!';
+            document.getElementById('loc-coords').textContent =
+                `${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E · Trichy, Tamil Nadu`;
+            // Init map if Google Maps loaded
+            if (window.google && window.google.maps) {
+                document.getElementById('map-placeholder').style.display = 'none';
+                LocationService.initMap(lat, lng, 'map');
+            }
+
+            await loadNearby(lat, lng, currentRadius);
+        },
+        (error) => {
+            document.getElementById('loc-dot').style.background = '#e53935';
+            document.getElementById('loc-status').textContent = '❌ Location unavailable';
+            document.getElementById('loc-coords').textContent = error;
+            document.getElementById('detecting-box').innerHTML = `
+                <div style="font-size:48px;margin-bottom:16px">📍</div>
+                <h3 style="font-weight:700;margin-bottom:8px;color:#2D3142">Location access denied</h3>
+                <p style="color:#6C757D;font-size:14px;margin-bottom:16px">${error}</p>
+                <p style="font-size:13px;color:#aaa;margin-bottom:16px">
+                    Click the 🔒 lock icon in your browser address bar<br/>
+                    and set Location to <strong>Allow</strong>
+                </p>
+                <button class="refresh-btn" onclick="detectLocation()">Try Again</button>`;
+            showFallbackRestaurants();
+        }
+    );
+}
+
+async function loadNearby(lat, lng, radius) {
+    showSkeletons();
+    try {
+        const results = await LocationService.fetchNearby(lat, lng, radius);
+        allResults = results;
+        document.getElementById('detecting-box').style.display = 'none';
+        document.getElementById('results-header').style.display = 'flex';
+        displayNearby(results);
+
+        if (window.google && window.google.maps) {
+            LocationService.addRestaurantMarkers(results);
+        }
+    } catch(e) {
+        document.getElementById('detecting-box').style.display = 'none';
+        document.getElementById('nearby-list').innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:#6C757D">
+                <div style="font-size:40px;margin-bottom:12px">😕</div>
+                <h3 style="font-weight:700;color:#2D3142;margin-bottom:8px">Could not load restaurants</h3>
+                <p style="font-size:14px">Make sure your Spring Boot app is running</p>
+            </div>`;
+    }
+}
+
+function showSkeletons() {
+    document.getElementById('nearby-list').innerHTML = Array(4).fill(`
+        <div style="background:white;border-radius:14px;padding:14px;display:flex;gap:14px;margin-bottom:10px;border:1px solid #E9ECEF">
+            <div class="skeleton" style="width:76px;height:76px;border-radius:12px;flex-shrink:0"></div>
+            <div style="flex:1">
+                <div class="skeleton" style="height:14px;margin-bottom:8px;border-radius:6px"></div>
+                <div class="skeleton" style="height:12px;width:60%;margin-bottom:8px;border-radius:6px"></div>
+                <div class="skeleton" style="height:10px;width:40%;border-radius:6px"></div>
+            </div>
+        </div>`).join('');
+}
+
+function displayNearby(results) {
+    document.getElementById('count').textContent = results.length;
+
+    if (!results.length) {
+        document.getElementById('nearby-list').innerHTML = `
+            <div style="text-align:center;padding:48px 20px;background:white;border-radius:16px;border:1px solid #E9ECEF">
+                <div style="font-size:48px;margin-bottom:16px">🔍</div>
+                <h3 style="font-weight:700;margin-bottom:8px;color:#2D3142">No restaurants found</h3>
+                <p style="color:#6C757D;font-size:14px;margin-bottom:16px">
+                    Try increasing the search radius
+                </p>
+                <button class="refresh-btn" onclick="document.getElementById('radius-slider').value=10;updateRadius(10)">
+                    Expand to 10 km
+                </button>
+            </div>`;
+        return;
+    }
+
+    document.getElementById('nearby-list').innerHTML = results.map((item, i) => {
+        const r = item.restaurant;
+        const crowdStatus = (r.crowdStatus || 'LOW').toLowerCase();
+        return `
+        <div class="nearby-card" style="animation-delay:${i * 0.06}s"
+             onclick="window.location.href='/restaurant.html?id=${r.id}'">
+            <img src="${r.imageUrl || `https://via.placeholder.com/76x76/FF6B35/white?text=${encodeURIComponent(r.name.charAt(0))}`}"
+                 alt="${r.name}"
+                 onerror="this.src='https://via.placeholder.com/76x76/FF6B35/white?text=R'"/>
+            <div style="flex:1;min-width:0">
+                <h3>${r.name}</h3>
+                <div style="margin-bottom:5px">
+                    <span class="distance-badge">📍 ${item.distanceLabel}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="rating-badge">⭐ ${r.avgRating ? r.avgRating.toFixed(1) : '0.0'}</span>
+                    <span style="font-size:13px;color:#6C757D">${r.cuisineType || 'Various'}</span>
+                    <span class="crowd-pill crowd-${crowdStatus}">${r.crowdStatus || 'LOW'}</span>
+                </div>
+                <p style="font-size:12px;color:#aaa;margin-top:4px">
+                    ${r.isOpen ? '🟢 Open now' : '🔴 Closed'} · ${r.city || 'Chennai'}
+                </p>
+            </div>
+            <div style="display:flex;align-items:center;color:#aaa;font-size:18px">›</div>
+        </div>`;
+    }).join('');
+}
+
+async function showFallbackRestaurants() {
+    try {
+        const restaurants = await apiCall('/restaurants');
+        document.getElementById('detecting-box').style.display = 'none';
+        document.getElementById('results-header').style.display = 'flex';
+        document.getElementById('count').textContent = restaurants.length;
+
+        document.getElementById('nearby-list').innerHTML = `
+            <div style="background:#fff8e1;border-radius:12px;padding:12px 16px;margin-bottom:14px;border:1px solid #FFE082;font-size:13px;color:#f57f17">
+                📍 Showing all restaurants — enable location for distance info
+            </div>` +
+            restaurants.map((r, i) => `
+            <div class="nearby-card" style="animation-delay:${i * 0.06}s"
+                 onclick="window.location.href='/restaurant.html?id=${r.id}'">
+                <img src="${r.imageUrl || 'https://via.placeholder.com/76x76/FF6B35/white?text=R'}"
+                     alt="${r.name}"
+                     onerror="this.src='https://via.placeholder.com/76x76/FF6B35/white?text=R'"/>
+                <div style="flex:1;min-width:0">
+                    <h3>${r.name}</h3>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+                        <span class="rating-badge">⭐ ${r.avgRating ? r.avgRating.toFixed(1) : '0.0'}</span>
+                        <span style="font-size:13px;color:#6C757D">${r.cuisineType || 'Various'}</span>
+                    </div>
+                    <p style="font-size:12px;color:#aaa;margin-top:4px">
+                        📍 ${r.city || 'Chennai'}
+                    </p>
+                </div>
+                <div style="display:flex;align-items:center;color:#aaa;font-size:18px">›</div>
+            </div>`).join('');
+    } catch(e) {}
+}
+
+function sortResults(by) {
+    if (!allResults.length) return;
+    let sorted = [...allResults];
+    if (by === 'distance') {
+        sorted.sort((a, b) => a.distanceKm - b.distanceKm);
+    } else if (by === 'rating') {
+        sorted.sort((a, b) => (b.restaurant.avgRating || 0) - (a.restaurant.avgRating || 0));
+    } else if (by === 'name') {
+        sorted.sort((a, b) => a.restaurant.name.localeCompare(b.restaurant.name));
+    }
+    displayNearby(sorted);
+}
+
+function updateRadius(val) {
+    currentRadius = parseInt(val);
+    document.getElementById('radius-label').textContent = `${val} km`;
+    updateSliderStyle(val);
+    if (LocationService.userLat) {
+        loadNearby(LocationService.userLat, LocationService.userLng, currentRadius);
+    }
+}
+
+function updateSliderStyle(val) {
+    const pct = ((val - 1) / (20 - 1)) * 100;
+    const slider = document.getElementById('radius-slider');
+    if (slider) {
+        slider.style.background = `linear-gradient(to right, #FF6B35 0%, #FF6B35 ${pct}%, #E9ECEF ${pct}%, #E9ECEF 100%)`;
+    }
+}
+
+function updateNavbar() {
+    const user = localStorage.getItem('spotbite_user');
+    const el = document.getElementById('nav-auth');
+    if (!el) return;
+    if (user) {
+        const u = JSON.parse(user);
+        el.innerHTML = `
+            <span style="font-weight:600;color:#2D3142;font-size:14px">Hi, ${u.name}! 👋</span>
+            <a href="/dashboard.html">
+                <button style="padding:8px 18px;border:2px solid #FF6B35;color:#FF6B35;background:transparent;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                    Dashboard
+                </button>
+            </a>
+            <button onclick="logout()" style="padding:8px 18px;background:#FF6B35;color:white;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                Logout
+            </button>`;
+    } else {
+        el.innerHTML = `
+            <a href="/login.html">
+                <button style="padding:8px 18px;border:2px solid #FF6B35;color:#FF6B35;background:transparent;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                    Login
+                </button>
+            </a>
+            <a href="/register.html">
+                <button style="padding:8px 18px;background:#FF6B35;color:white;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+                    Sign Up
+                </button>
+            </a>`;
+    }
+}
+
+function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+
+<!-- Google Maps API with your key -->
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEUYziYorSshYndWPtAH5KA147GqEKejE&callback=initGoogleMaps&libraries=places">
+</script>
+
+</body>
+</html>

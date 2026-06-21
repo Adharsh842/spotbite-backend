@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotBite — Restaurant</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .booking-form{background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow-sm);max-width:480px;border:1px solid var(--border)}
+  .booking-form h2{font-size:22px;font-weight:800;margin-bottom:6px}
+  .booking-form .sub{color:var(--text-muted);font-size:14px;margin-bottom:24px}
+  .booking-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .booking-field{margin-bottom:16px}
+  .booking-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--secondary)}
+  .booking-field input,.booking-field select,.booking-field textarea{
+    width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;
+    font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:border .2s;
+    background:var(--input-bg);color:var(--secondary);
+  }
+  .booking-field input:focus,.booking-field select:focus,.booking-field textarea:focus{border-color:var(--primary)}
+  .capacity-note{font-size:12px;color:var(--text-muted);margin-top:-8px;margin-bottom:16px}
+  .my-bookings-list{margin-top:32px}
+  .booking-card{
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .booking-status{padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700}
+  .status-PENDING{background:#fff8e1;color:#f57f17}
+  .status-CONFIRMED{background:#e8f5e9;color:#2e7d32}
+  .status-REJECTED{background:#ffebee;color:#c62828}
+  .status-CANCELLED{background:var(--border);color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/index.html" class="logo">Spot<span>Bite</span> 🍽️</a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Home</a></li>
+    <li><a href="/search.html">Search</a></li>
+  </ul>
+  <div class="nav-actions" id="nav-auth"></div>
+</nav>
+
+<!-- Hero Image -->
+<div class="detail-hero">
+  <img id="hero-img"
+       src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+       alt="Restaurant"/>
+  <div class="detail-hero-overlay"></div>
+  <div class="detail-hero-content animate-fade-up">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <span id="open-badge" class="open-badge" style="position:static">● Open</span>
+      <span id="crowd-badge" class="crowd-badge crowd-low">LOW</span>
+    </div>
+    <h1 id="restaurant-name">Loading...</h1>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <span id="rating-badge" style="background:rgba(255,255,255,.2);backdrop-filter:blur(8px);padding:6px 14px;border-radius:50px;font-weight:700">⭐ 0.0</span>
+      <span id="cuisine-badge" style="opacity:.85">🍽️ Cuisine</span>
+      <span id="city-badge" style="opacity:.85">📍 City</span>
+      <span id="price-badge" style="opacity:.85">💰 Price</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="detail-tabs">
+  <button class="tab-btn active" onclick="showTab('dishes',this)">🍽️ Dishes</button>
+  <button class="tab-btn" onclick="showTab('reviews',this)">⭐ Reviews</button>
+  <button class="tab-btn" onclick="showTab('booking',this)">📅 Book a Table</button>
+  <button class="tab-btn" onclick="showTab('info',this)">ℹ️ Info</button>
+</div>
+
+<!-- Dishes Tab -->
+<div id="tab-dishes" class="tab-content active">
+  <h2 style="font-size:22px;font-weight:800;margin-bottom:24px">Famous Dishes</h2>
+  <div id="dishes-grid" class="dish-grid"></div>
+</div>
+
+<!-- Reviews Tab -->
+<div id="tab-reviews" class="tab-content">
+  <div style="display:grid;grid-template-columns:1fr 400px;gap:32px">
+    <div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:24px">Customer Reviews</h2>
+      <div id="reviews-list"></div>
+    </div>
+    <div>
+      <div class="review-form">
+        <h3>Write a Review</h3>
+        <div class="star-picker" id="star-picker">
+          <span onclick="setRating(1)">★</span>
+          <span onclick="setRating(2)">★</span>
+          <span onclick="setRating(3)">★</span>
+          <span onclick="setRating(4)">★</span>
+          <span onclick="setRating(5)">★</span>
+        </div>
+        <textarea id="review-comment" placeholder="Share your experience..."></textarea>
+        <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="submitReview()">Submit Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Tab -->
+<div id="tab-booking" class="tab-content">
+  <div class="booking-form">
+    <h2>📅 Book a Table</h2>
+    <p class="sub">Reserve your spot — the restaurant will confirm shortly</p>
+
+    <div class="booking-row">
+      <div class="booking-field">
+        <label>Date</label>
+        <input type="date" id="b-date"/>
+      </div>
+      <div class="booking-field">
+        <label>Time</label>
+        <input type="time" id="b-time"/>
+      </div>
+    </div>
+
+    <div class="booking-field">
+      <label>Number of Guests</label>
+      <select id="b-guests">
+        <option value="1">1 Guest</option>
+        <option value="2" selected>2 Guests</option>
+        <option value="3">3 Guests</option>
+        <option value="4">4 Guests</option>
+        <option value="5">5 Guests</option>
+        <option value="6">6 Guests</option>
+        <option value="8">8 Guests</option>
+        <option value="10">10+ Guests</option>
+      </select>
+    </div>
+
+    <div class="booking-field">
+      <label>Special Request (optional)</label>
+      <textarea id="b-request" rows="3" placeholder="Window seat, birthday celebration, allergies, etc."></textarea>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="submitBooking()">Reserve Table</button>
+
+    <div class="my-bookings-list" id="my-bookings-section" style="display:none">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Your Bookings Here</h3>
+      <div id="my-bookings-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Info Tab -->
+<div id="tab-info" class="tab-content">
+  <div style="background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow-sm);max-width:600px;border:1px solid var(--border)">
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:24px">Restaurant Info</h2>
+    <div id="info-content"></div>
+    <div style="margin-top:24px">
+      <h3 style="font-weight:700;margin-bottom:12px">Live Crowd Status</h3>
+      <div class="crowd-bar">
+        <span id="crowd-label" style="font-weight:600;font-size:14px;min-width:80px">LOW</span>
+        <div class="crowd-bar-track">
+          <div id="crowd-fill" class="crowd-bar-fill crowd-fill-low"></div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px">Updated in real-time · Refreshes every 60 seconds</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast"></div>
+<script src="/js/api.js"></script>
+<script src="/js/restaurant.js"></script>
+</body>
+</html>

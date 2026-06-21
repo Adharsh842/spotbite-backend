@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotBite — Find Your Perfect Restaurant</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/index.html" class="logo">Spot<span>Bite</span> 🍽️</a>
+  <ul class="nav-links">
+    <li><a href="/index.html">Home</a></li>
+    <li><a href="/search.html">Search</a></li>
+  </ul>
+  <div class="nav-actions" id="nav-auth"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content animate-fade-up">
+    <div class="hero-badge">🌟 India's #1 Restaurant Finder</div>
+    <h1>Find Your Perfect<br/>Restaurant 🍽️</h1>
+    <p>Search by location · Filter by cuisine · Check live crowd status</p>
+    <div class="search-box">
+      <span style="font-size:20px;flex-shrink:0">🔍</span>
+      <input type="text" id="search-input" placeholder="Search by city or cuisine..." onkeydown="if(event.key==='Enter')searchRestaurants()"/>
+      <button onclick="searchRestaurants()">Search</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-top:24px;flex-wrap:wrap">
+      <span style="opacity:.85;font-size:14px">⭐ 10,000+ Reviews</span>
+      <span style="opacity:.85;font-size:14px">🍽️ 500+ Restaurants</span>
+      <span style="opacity:.85;font-size:14px">📍 50+ Cities</span>
+    </div>
+  </div>
+</section>
+
+<!-- CUISINE CATEGORIES -->
+<section class="section animate-fade-up-delay-1">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Browse by Cuisine</h2>
+      <p class="section-subtitle">What are you craving today?</p>
+    </div>
+    <a href="/search.html"><button class="btn btn-outline">View All →</button></a>
+  </div>
+  <div class="cuisine-grid">
+    <div class="cuisine-pill active" onclick="filterByCuisine('Indian')">
+      <span class="icon">🍛</span> Indian
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Chinese')">
+      <span class="icon">🍜</span> Chinese
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Italian')">
+      <span class="icon">🍕</span> Italian
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Mexican')">
+      <span class="icon">🌮</span> Mexican
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Japanese')">
+      <span class="icon">🍱</span> Japanese
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Fast Food')">
+      <span class="icon">🍔</span> Fast Food
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Desserts')">
+      <span class="icon">🍰</span> Desserts
+    </div>
+    <div class="cuisine-pill" onclick="filterByCuisine('Seafood')">
+      <span class="icon">🦞</span> Seafood
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED RESTAURANTS -->
+<section class="section animate-fade-up-delay-2" style="padding-top:64px;padding-bottom:64px">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Featured Restaurants</h2>
+      <p class="section-subtitle">Top rated places near you</p>
+    </div>
+    <a href="/search.html"><button class="btn btn-outline">See All →</button></a>
+  </div>
+  <div id="restaurant-list" class="restaurant-grid"></div>
+</section>
+
+<!-- WHY SPOTBITE -->
+<section class="section animate-fade-up-delay-3">
+  <div style="text-align:center;margin-bottom:48px">
+    <h2 class="section-title">Why SpotBite?</h2>
+    <p class="section-subtitle">Everything you need to find the perfect restaurant</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px">
+    <div class="why-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;text-align:center;box-shadow:var(--shadow);transition:all .3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+      <div style="font-size:40px;margin-bottom:16px">📍</div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Search by Location</h3>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.7">Find restaurants in your city with a single search</p>
+    </div>
+    <div class="why-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;text-align:center;box-shadow:var(--shadow);transition:all .3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+      <div style="font-size:40px;margin-bottom:16px">👥</div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Live Crowd Status</h3>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.7">Check how busy a restaurant is before you go</p>
+    </div>
+    <div class="why-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;text-align:center;box-shadow:var(--shadow);transition:all .3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+      <div style="font-size:40px;margin-bottom:16px">⭐</div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Real Reviews</h3>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.7">Read honest reviews from real customers</p>
+    </div>
+    <div class="why-card" style="background:var(--card-bg);border-radius:var(--radius-lg);padding:32px;text-align:center;box-shadow:var(--shadow);transition:all .3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+      <div style="font-size:40px;margin-bottom:16px">❤️</div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Save Favorites</h3>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.7">Bookmark your favorite places for quick access</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section style="background:linear-gradient(135deg,#FF6B35,#e55a28);padding:80px 48px;text-align:center;color:white">
+  <h2 style="font-size:36px;font-weight:800;margin-bottom:12px;letter-spacing:-.5px">Ready to find your next meal? 🍽️</h2>
+  <p style="font-size:18px;opacity:.9;margin-bottom:32px">Join thousands of food lovers discovering amazing restaurants</p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+    <a href="/register.html">
+      <button class="btn btn-lg" style="background:white;color:var(--primary);font-weight:700">
+        Get Started Free →
+      </button>
+    </a>
+    <a href="/search.html">
+      <button class="btn btn-lg" style="background:rgba(255,255,255,.2);color:white;border:2px solid rgba(255,255,255,.5)">
+        Browse Restaurants
+      </button>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">SpotBite 🍽️</div>
+      <p style="margin-top:12px;font-size:14px;line-height:1.7">
+        India's favourite restaurant finder. Discover, explore and enjoy amazing dining experiences near you.
+      </p>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="/search.html">Search Restaurants</a></li>
+        <li><a href="/search.html?cuisine=Indian">Indian Food</a></li>
+        <li><a href="/search.html?cuisine=Chinese">Chinese Food</a></li>
+        <li><a href="/search.html?cuisine=Italian">Italian Food</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Account</h4>
+      <ul>
+        <li><a href="/login.html">Login</a></li>
+        <li><a href="/register.html">Sign Up</a></li>
+        <li><a href="/dashboard.html">My Dashboard</a></li>
+        <li><a href="/dashboard.html">My Favorites</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>SpotBite</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>🍽️ SpotBite — Find your perfect bite. Made with ❤️ in India · © 2025</p>
+  </div>
+</footer>
+
+<div class="toast"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/home.js"></script>
+
+</body>
+</html>
