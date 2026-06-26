@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://spotbite.onrender.com/api';
 
 function getToken() {
     return localStorage.getItem('spotbite_token');
